@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>BeneLoan — Admin Console</title>
+  <!-- Bootstrap & Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+  <style>
+    :root{
+      --bg-start:#0f1226; /* deep indigo */
+      --bg-end:#0a1a2f;   /* midnight blue */
+      --brand:#7dd3fc;    /* sky */
+      --brand-2:#a78bfa;  /* violet */
+      --accent:#22d3ee;   /* cyan */
+      --glass:rgba(255,255,255,0.06);
+      --glass-stroke:rgba(255,255,255,0.12);
+      --text:#E7ECF3;
+      --muted:#A6B0C0;
+      --success:#22c55e;
+      --danger:#ef4444;
+      --warning:#f59e0b;
+    }
+    /* Premium gradient background */
+    body{
+      color:var(--text);
+      background: radial-gradient(1200px 600px at 10% -10%, #1a2a6c22, transparent),
+                  radial-gradient(900px 500px at 110% 10%, #b21f1f15, transparent),
+                  linear-gradient(145deg, var(--bg-start), var(--bg-end));
+      min-height:100vh;
+      -webkit-font-smoothing:antialiased;
+      text-rendering:optimizeLegibility;
+    }
+    /* Subtle animated glow at top */
+    .hero-glow{
+      position:fixed; inset: -40vmax -40vmax auto auto; width:80vmax; height:80vmax;
+      background: radial-gradient(circle at center, rgba(124,58,237,.12), transparent 60%);
+      filter: blur(60px); pointer-events:none; animation: float 18s ease-in-out infinite alternate;
+    }
+    @keyframes float{ from{ transform:translate3d(0,0,0)} to{ transform:translate3d(-40px,20px,0)} }
+
+    /* Glassy surface cards */
+    .glass{
+      background: var(--glass);
+      border: 1px solid var(--glass-stroke);
+      box-shadow: 0 10px 30px rgba(0,0,0,.35), inset 0 0 0 1px rgba(255,255,255,.02);
+      backdrop-filter: blur(10px);
+      border-radius: 18px;
+      transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease;
+    }
+    .glass:hover{ transform: translateY(-2px); box-shadow: 0 16px 40px rgba(0,0,0,.45); border-color: rgba(255,255,255,.2); }
+
+    .brand-gradient{
+      background: linear-gradient(90deg, var(--brand), var(--brand-2));
+      -webkit-background-clip:text; background-clip:text; color:transparent;
+    }
+    .btn-brand{
+      background: linear-gradient(135deg, var(--brand), var(--accent));
+      border: none; color:#0b1220; font-weight:600;
+      box-shadow: 0 8px 20px rgba(45,212,191,.25);
+    }
+    .btn-brand:hover{ filter:brightness(1.05); box-shadow: 0 10px 26px rgba(45,212,191,.35); }
+
+    .muted{ color: var(--muted); }
+
+    /* Tables */
+    .table{ --bs-table-bg: transparent; color: var(--text); }
+    .table thead th{ color:#bcd1ff; border-color: rgba(255,255,255,.08); font-weight:600; }
+    .table tbody td{ border-color: rgba(255,255,255,.06); }
+
+    .pill{
+      display:inline-flex; align-items:center; gap:.4rem; padding:.25rem .6rem; border-radius:999px; font-size:.78rem; border:1px solid var(--glass-stroke);
+    }
+
+    /* Drag & Drop */
+    .drop{ border:1px dashed rgba(255,255,255,.18); border-radius:12px; padding:18px; text-align:center; transition: border-color .2s ease, background .2s ease; }
+    .drop.dragover{ border-color: var(--accent); background: rgba(34,211,238,.05); }
+
+    /* Top bar */
+    .nav-blur{ backdrop-filter: blur(10px); background: linear-gradient(180deg, rgba(8,13,26,.75), rgba(8,13,26,.35)); border-bottom:1px solid rgba(255,255,255,.08); }
+
+    /* Toasts */
+    #toast{ position:fixed; right:18px; bottom:18px; z-index:2000; }
+
+    a{ color:#9bd2ff; } a:hover{ color:#c6dcff; }
+  </style>
+</head>
+<body>
+  <div class="hero-glow"></div>
+
+  <!-- Top Bar -->
+  <nav class="nav-blur sticky-top">
+    <div class="container d-flex align-items-center justify-content-between py-3">
+      <div>
+        <span class="fw-bold fs-4 brand-gradient">BeneLoan</span>
+        <span class="ms-3 pill"><i class="bi bi-shield-lock"></i> Admin Console</span>
+      </div>
+      <div class="d-flex align-items-center gap-2">
+        <button class="btn btn-sm btn-outline-light" id="btnCopyToken" title="Copy Token"><i class="bi bi-clipboard"></i></button>
+        <button class="btn btn-sm btn-brand" onclick="openAuth()"><i class="bi bi-box-arrow-in-right me-1"></i>Login</button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="container py-5">
+    <!-- AUTH / TOKEN CARD -->
+    <section class="glass p-4 mb-4" id="authCard">
+      <div class="d-flex align-items-center justify-content-between flex-wrap">
+        <div class="mb-3 mb-sm-0">
+          <h1 class="h4 mb-1">Authenticate</h1>
+          <p class="muted mb-0">Use your credentials to fetch a JWT. The token is stored securely in your browser (session).
+          </p>
+        </div>
+        <div class="d-flex gap-2 flex-wrap">
+          <input id="username" class="form-control form-control-sm" placeholder="Username" style="min-width:180px" />
+          <input id="password" type="password" class="form-control form-control-sm" placeholder="Password" style="min-width:180px" />
+          <button class="btn btn-brand btn-sm" id="btnLogin"><i class="bi bi-box-arrow-in-right me-1"></i>Login</button>
+        </div>
+      </div>
+      <div class="mt-3">
+        <label class="form-label small muted">JWT Token</label>
+        <div class="input-group">
+          <textarea id="token" class="form-control" rows="2" placeholder="JWT Token will appear here…"></textarea>
+          <button class="btn btn-outline-light" id="btnUse">Use Token</button>
+        </div>
+        <small class="muted">Need help? Add <code>Authorization: Bearer &lt;token&gt;</code> to each request.</small>
+      </div>
+    </section>
+
+    <!-- UPLOADS -->
+    <div class="row g-4">
+      <div class="col-lg-6">
+        <section class="glass p-4 h-100">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <h2 class="h5 mb-0">Upload Beneficiaries CSV</h2>
+            <a href="#" class="small">CSV template</a>
+          </div>
+          <div class="drop" id="drop-beneficiaries">
+            <i class="bi bi-cloud-arrow-up fs-2"></i>
+            <p class="mb-1">Drag & drop your file here</p>
+            <small class="muted">or</small><br />
+            <input type="file" id="beneficiariesFile" class="form-control mt-2" />
+          </div>
+          <div class="d-flex justify-content-end mt-3">
+            <button class="btn btn-brand" id="btnUploadBeneficiaries">
+              <span class="label">Upload</span>
+              <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+            </button>
+          </div>
+          <pre id="beneficiariesResult" class="mt-3 small text-warning"></pre>
+        </section>
+      </div>
+
+      <div class="col-lg-6">
+        <section class="glass p-4 h-100">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <h2 class="h5 mb-0">Upload Loans CSV</h2>
+            <a href="#" class="small">CSV template</a>
+          </div>
+          <div class="drop" id="drop-loans">
+            <i class="bi bi-cloud-arrow-up fs-2"></i>
+            <p class="mb-1">Drag & drop your file here</p>
+            <small class="muted">or</small><br />
+            <input type="file" id="loansFile" class="form-control mt-2" />
+          </div>
+          <div class="d-flex justify-content-end mt-3">
+            <button class="btn btn-brand" id="btnUploadLoans">
+              <span class="label">Upload</span>
+              <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+            </button>
+          </div>
+          <pre id="loansResult" class="mt-3 small text-warning"></pre>
+        </section>
+      </div>
+    </div>
+
+    <!-- DATA TABLES -->
+    <div class="row g-4 mt-1">
+      <div class="col-lg-6">
+        <section class="glass p-4 h-100">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <h2 class="h5 mb-0">Beneficiaries</h2>
+            <button class="btn btn-sm btn-outline-light" id="btnRefreshBeneficiaries"><i class="bi bi-arrow-clockwise"></i> Refresh</button>
+          </div>
+          <div class="table-responsive">
+            <table class="table align-middle">
+              <thead style="color: bisque;"><tr><th>ID</th><th>Name</th><th>Caste</th><th>Beneficiary ID</th></tr></thead>
+              <tbody style="color: bisque;" id="beneficiariesTable"><tr><td colspan="4" class="muted" style="color: bisque;">No data yet. Click Refresh after uploading.</td></tr></tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+      <div class="col-lg-6" >
+        <section class="glass p-4 h-100">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <h2 class="h5 mb-0">Loans</h2>
+            <button class="btn btn-sm btn-outline-light" id="btnRefreshLoans"><i class="bi bi-arrow-clockwise"></i> Refresh</button>
+          </div>
+          <div class="table-responsive">
+            <table class="table align-middle" style="color: bisque;">
+              <thead><tr><th>ID</th><th>Application</th><th>Bank</th><th>IFSC</th><th>Amount</th><th>Sanction</th></tr></thead>
+              <tbody id="loansTable"><tr><td colspan="6" class="muted" style="color: bisque;">No data yet. Click Refresh after uploading.</td></tr></tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <!-- Toasts -->
+  <div id="toast"></div>
+
+  <script>
+    const BASE_URL = "http://localhost:8080";
+
+    // --- Helpers ------------------------------------------------------------
+    const qs = (s, el=document) => el.querySelector(s);
+    const qsa = (s, el=document) => [...el.querySelectorAll(s)];
+
+    function showToast(message, type="info"){
+      const id = "t"+Date.now();
+      const bg = {
+        success: 'bg-success',
+        danger: 'bg-danger',
+        warning: 'bg-warning text-dark',
+        info: 'bg-primary'
+      }[type] || 'bg-secondary';
+      const el = document.createElement('div');
+      el.className = `toast align-items-center text-white border-0 ${bg}`;
+      el.role = 'alert'; el.id = id; el.setAttribute('aria-live','assertive'); el.setAttribute('aria-atomic','true');
+      el.innerHTML = `
+        <div class="d-flex">
+          <div class="toast-body">${message}</div>
+          <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>`;
+      qs('#toast').appendChild(el);
+      const t = new bootstrap.Toast(el, { delay: 3200 });
+      t.show();
+      el.addEventListener('hidden.bs.toast', () => el.remove());
+    }
+
+    async function apiFetch(path, opts={}){
+      const headers = opts.headers || {};
+      if (!headers['Authorization']){
+        const tk = sessionStorage.getItem('token');
+        if (tk) headers['Authorization'] = 'Bearer ' + tk;
+      }
+      const res = await fetch(BASE_URL + path, { ...opts, headers });
+      const text = await res.text();
+      let data;
+      try{ data = text ? JSON.parse(text) : {}; }catch{ data = { message: text } }
+      if(!res.ok){
+        const msg = data.message || data.error || `HTTP ${res.status}`;
+        throw new Error(msg);
+      }
+      return data;
+    }
+
+    function setLoading(btn, loading){
+      const label = qs('.label', btn); const spin = qs('.spinner-border', btn);
+      if(loading){ label?.classList.add('d-none'); spin?.classList.remove('d-none'); btn.disabled = true; }
+      else { label?.classList.remove('d-none'); spin?.classList.add('d-none'); btn.disabled = false; }
+    }
+
+    // --- Auth ---------------------------------------------------------------
+    async function login(){
+      const username = qs('#username').value.trim();
+      const password = qs('#password').value.trim();
+      if(!username || !password){ showToast('Enter username & password','warning'); return; }
+      try{
+        setLoading(qs('#btnLogin'), true);
+        const data = await apiFetch('/auth/login',{
+          method:'POST', headers:{ 'Content-Type':'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+        const token = data.token;
+        sessionStorage.setItem('token', token);
+        qs('#token').value = token;
+        showToast('Login successful','success');
+      }catch(e){ showToast('Login failed: '+e.message,'danger'); }
+      finally{ setLoading(qs('#btnLogin'), false); }
+    }
+
+    function useToken(){
+      const t = qs('#token').value.trim();
+      if(!t){ showToast('Paste a token first','warning'); return; }
+      sessionStorage.setItem('token', t);
+      showToast('Token set','success');
+    }
+
+    function openAuth(){ qs('#authCard').scrollIntoView({ behavior:'smooth', block:'start' }); }
+
+    // --- Uploads ------------------------------------------------------------
+    async function uploadCsv(kind){
+      const input = qs('#'+kind+'File');
+      if(!input.files.length){ showToast('Please choose a file','warning'); return; }
+      const file = input.files[0];
+      const fd = new FormData(); fd.append('file', file);
+      const btn = qs('#btnUpload'+(kind==='beneficiaries'?'Beneficiaries':'Loans'));
+      try{
+        setLoading(btn, true);
+        const data = await apiFetch('/upload/'+kind, { method:'POST', body: fd });
+        qs('#'+kind+'Result').textContent = JSON.stringify(data, null, 2);
+        showToast('Upload success','success');
+      }catch(e){ qs('#'+kind+'Result').textContent = e.message; showToast('Upload failed: '+e.message,'danger'); }
+      finally{ setLoading(btn, false); input.value = '' }
+    }
+
+    // Drag & drop UX
+    function wireDrop(areaId, inputId){
+      const zone = qs('#'+areaId); const input = qs('#'+inputId);
+      ;['dragenter','dragover'].forEach(ev=> zone.addEventListener(ev, e=>{ e.preventDefault(); e.stopPropagation(); zone.classList.add('dragover'); }));
+      ;['dragleave','drop'].forEach(ev=> zone.addEventListener(ev, e=>{ e.preventDefault(); e.stopPropagation(); zone.classList.remove('dragover'); }));
+      zone.addEventListener('drop', e=>{ input.files = e.dataTransfer.files; });
+    }
+
+    // --- Tables -------------------------------------------------------------
+    async function loadTable(kind){
+      try{
+        const data = await apiFetch('/'+kind);
+        const tbody = qs('#'+kind+'Table');
+        if(!Array.isArray(data) || data.length===0){ tbody.innerHTML = `<tr><td colspan="${kind==='beneficiaries'?4:6}" class="muted">No rows</td></tr>`; return; }
+        tbody.innerHTML = '';
+        if(kind==='beneficiaries'){
+          for(const r of data){
+            tbody.insertAdjacentHTML('beforeend', `<tr>
+              <td style="color: bisque;">${r.id ?? ''}</td>
+              <td style="color: bisque;">${r.name ?? ''}</td>
+              <td style="color: bisque;"><span class="pill">${r.caste ?? ''}</span></td>
+              <td style="color: bisque;">${r.beneficiary_id ?? r.beneficiaryId ?? ''}</td>
+            </tr>`);
+          }
+        }else{
+          for(const r of data){
+            tbody.insertAdjacentHTML('beforeend', `<tr>
+              <td style="color: bisque;">${r.id ?? ''}</td>
+              <td style="color: bisque;">${r.applicationId ?? r.application_id ?? ''}</td>
+              <td style="color: bisque;">${r.bankName ?? r.bank_name ?? ''}</td>
+              <td style="color: bisque;">${r.ifscCode ?? r.ifsc_code ?? ''}</td>
+              <td style="color: bisque;">${r.loanAmount ?? r.loan_amount ?? ''}</td>
+              <td style="color: bisque;">${r.sanctionAmount ?? r.sanction_amount ?? ''}</td>
+            </tr>`);
+          }
+        }
+      }catch(e){ showToast('Load failed: '+e.message,'danger'); }
+    }
+
+    // --- Init ---------------------------------------------------------------
+    document.addEventListener('DOMContentLoaded', ()=>{
+      // Restore token if any
+      const tk = sessionStorage.getItem('token'); if(tk) qs('#token').value = tk;
+
+      qs('#btnLogin').addEventListener('click', login);
+      qs('#btnUse').addEventListener('click', useToken);
+      qs('#btnCopyToken').addEventListener('click', ()=>{
+        const t = sessionStorage.getItem('token') || qs('#token').value; if(!t) return showToast('No token to copy','warning');
+        navigator.clipboard.writeText(t).then(()=> showToast('Token copied','success'));
+      });
+
+      qs('#btnUploadBeneficiaries').addEventListener('click', ()=> uploadCsv('beneficiaries'));
+      qs('#btnUploadLoans').addEventListener('click', ()=> uploadCsv('loans'));
+
+      qs('#btnRefreshBeneficiaries').addEventListener('click', ()=> loadTable('beneficiaries'));
+      qs('#btnRefreshLoans').addEventListener('click', ()=> loadTable('loans'));
+
+      wireDrop('drop-beneficiaries','beneficiariesFile');
+      wireDrop('drop-loans','loansFile');
+    });
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
