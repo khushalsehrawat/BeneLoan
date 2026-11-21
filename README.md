@@ -169,14 +169,17 @@ The root `index.html` is a static HTML/Bootstrap admin console for the Spring Bo
 
 The confirmed public URL, `https://www.thebenzzcreations.com/`, is used for the canonical link, `og:url` and the WebApplication JSON-LD URL. The structured data identifies the application's author and creator without adding lender, financial product or review claims. No dedicated social preview image is configured. Structured data does not guarantee search rich results.
 
-One visible developer credit appears below the console in a footer. Its promotional link uses `rel="nofollow"`. The existing author information and TheVB24 studio link above are retained.
+One visible developer credit appears below the console in a footer. Its developer link uses a normal same-tab hyperlink. The existing author information and TheVB24 studio link above are retained.
 
 The console has no package manifest, configured frontend lint suite or frontend build command. Backend compilation targets Java 21 and backend-dependent features require the configured API and database.
 
-## Development
+## Development & Maintenance
 
-Developed by [TheBenzzCreations](https://www.thebenzzcreations.com/).
+**Developed & Maintained by
+[Khushal Sehrawat](https://github.com/khushalsehrawat)**
+— Founder of
+[TheBenzzCreations](https://www.thebenzzcreations.com/).
 
-TheBenzzCreations builds custom websites, mobile applications, business software, e-commerce platforms and AI automation solutions.
+TheBenzzCreations is a digital development studio specializing in website development, custom software, mobile applications, e-commerce solutions and AI-powered business automation.
 
-For development enquiries, visit our official website.
+For development enquiries and collaborations, visit [TheBenzzCreations](https://www.thebenzzcreations.com/).
