@@ -1,0 +1,12 @@
+{
+  "sites": [
+    {
+      "name": "Beneloan",
+      "root": ".",
+      "base_url": "https://khushalsehrawat.github.io/BeneLoan/",
+      "pages": {
+        "index.html": "https://khushalsehrawat.github.io/BeneLoan/"
+      }
+    }
+  ]
+}

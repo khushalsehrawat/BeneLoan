@@ -167,7 +167,7 @@ APP002,BEN102,SBI,Current,12345SBI002,SBIN0005678,70000,60000
 
 The root `index.html` is a static HTML/Bootstrap admin console for the Spring Boot API. It includes a description, Khushal Sehrawat as author, TheBenzzCreations as creator, Open Graph metadata and Twitter card metadata. The existing title, branding and application code are preserved.
 
-The confirmed public URL, `https://www.thebenzzcreations.com/`, is used for the canonical link, `og:url` and the WebApplication JSON-LD URL. The structured data identifies the application's author and creator without adding lender, financial product or review claims. No dedicated social preview image is configured. Structured data does not guarantee search rich results.
+Production identity is recorded in `seo-sites.json`; see Canonical URL validation below. The developer credit is not evidence of a project deployment URL.
 
 One visible developer credit appears below the console in a footer. Its developer link uses a normal same-tab hyperlink. The existing author information and TheVB24 studio link above are retained.
 
@@ -183,3 +183,11 @@ The console has no package manifest, configured frontend lint suite or frontend 
 TheBenzzCreations is a digital development studio specializing in website development, custom software, mobile applications, e-commerce solutions and AI-powered business automation.
 
 For development enquiries and collaborations, visit [TheBenzzCreations](https://www.thebenzzcreations.com/).
+
+## Canonical URL validation
+
+Run `python scripts/validate_seo.py` from this repository before publishing. The dependency-free check validates exact page canonicals, Open Graph URLs, website/application JSON-LD URLs, sitemap locations, robots sitemap references and literal framework site metadata against `seo-sites.json`. It checks deployment path prefixes as well as domains, so one GitHub Pages project cannot canonicalize to another.
+
+Only URLs whose live HTML matched the local page on 2026-11-21 are configured. Unverified pages have no canonical or social URL; `python scripts/validate_seo.py --require-verified` also fails for those pending pages. Reverify the configuration if the deployment moves. Dynamic framework expressions still require runtime validation.
+
+TheBenzzCreations attribution, creator organization URLs and existing normal same-tab developer credit links are preserved. These outbound attribution links are separate from site identity.
